@@ -34,7 +34,8 @@ wait_for_http() {
 
 log "starting docker compose platform"
 mkdir -p approval-service/data
-chmod 777 approval-service/data
+test -f approval-service/data/approvals.json || printf '[]\n' > approval-service/data/approvals.json
+chmod -R 777 approval-service/data
 docker compose up -d --build
 
 wait_for_http "agent-api" "http://localhost:8010/health"

@@ -25,4 +25,6 @@ checks = [
 for name, method, url, payload in checks:
     response = requests.request(method, url, json=payload, timeout=12)
     print(json.dumps({"check": name, "status_code": response.status_code, "passed": response.ok}))
+    if not response.ok:
+        print(response.text)
     response.raise_for_status()

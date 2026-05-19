@@ -223,7 +223,8 @@ jobs:
       - name: Deploy runtime and validate operations flow
         run: |
           mkdir -p "$EVIDENCE_DIR" approval-service/data
-          chmod 777 approval-service/data
+          test -f approval-service/data/approvals.json || printf '[]\n' > approval-service/data/approvals.json
+          chmod -R 777 approval-service/data
           docker compose up -d --build
           for url in http://localhost:8010/health http://localhost:8001/health http://localhost:9090/-/ready http://localhost:3000/api/health http://127.0.0.1:8080/health; do
             for attempt in {1..45}; do
@@ -239,7 +240,10 @@ jobs:
               sleep 2
             done
           done
-          python3 scripts/platform_smoke_test.py
+          if ! python3 scripts/platform_smoke_test.py; then
+            docker compose logs --tail=160 agent-api llm-gateway
+            exit 1
+          fi
           python3 scripts/simulate_incident.py
           timeout 20s python3 scripts/generate_traffic.py || true
           python3 - <<'PY'
