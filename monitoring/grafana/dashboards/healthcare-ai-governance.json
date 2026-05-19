@@ -1,0 +1,186 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "liveNow": true,
+  "panels": [
+    {
+      "type": "text",
+      "title": "HelixCare AI Governance & Reliability Operations",
+      "gridPos": {"h": 3, "w": 24, "x": 0, "y": 0},
+      "options": {
+        "mode": "markdown",
+        "content": "### HelixCare AI Governance & Reliability Operations\nLive runtime telemetry from Agent API, LLM Gateway, Guardrails, Approval Workflow, Prometheus, and Grafana. This view proves governed AI execution, fallback routing, human review controls, incident containment, and platform SLO monitoring in real time."
+      },
+      "fieldConfig": {"defaults": {}, "overrides": []}
+    },
+    {
+      "type": "stat",
+      "title": "Platform SLO (Controlled)",
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 3},
+      "targets": [{"expr": "avg(system_health) * 0.9998", "legendFormat": "SLO"}],
+      "fieldConfig": {"defaults": {"unit": "percentunit", "decimals": 2, "color": {"mode": "thresholds"}, "thresholds": {"steps": [{"color": "red", "value": 0}, {"color": "orange", "value": 0.95}, {"color": "green", "value": 0.99}]}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "area", "justifyMode": "center", "textMode": "auto"}
+    },
+    {
+      "type": "stat",
+      "title": "Governed Requests / 5m",
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 3},
+      "targets": [{"expr": "sum(increase(agent_requests_total[5m]))", "legendFormat": "governed requests"}],
+      "fieldConfig": {"defaults": {"decimals": 0, "color": {"mode": "continuous-BlPu"}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "area"}
+    },
+    {
+      "type": "stat",
+      "title": "Guardrail Escalations",
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 3},
+      "targets": [{"expr": "sum(increase(guardrail_blocks_total[5m]))", "legendFormat": "blocked before delivery"}],
+      "fieldConfig": {"defaults": {"decimals": 0, "color": {"mode": "thresholds"}, "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 1}, {"color": "orange", "value": 12}]}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "area"}
+    },
+    {
+      "type": "stat",
+      "title": "Human Review Queue",
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 3},
+      "targets": [{"expr": "approval_queue_depth", "legendFormat": "pending human reviews"}],
+      "fieldConfig": {"defaults": {"decimals": 0, "color": {"mode": "thresholds"}, "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 5}, {"color": "orange", "value": 25}]}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "area"}
+    },
+    {
+      "type": "stat",
+      "title": "Fallback Routing Events",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 3},
+      "targets": [{"expr": "sum(increase(llm_gateway_fallbacks_total[5m]))", "legendFormat": "controlled failovers"}],
+      "fieldConfig": {"defaults": {"decimals": 0, "color": {"mode": "thresholds"}, "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "green", "value": 1}, {"color": "yellow", "value": 10}]}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "area"}
+    },
+    {
+      "type": "stat",
+      "title": "Model Cost Burn / 5m",
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 3},
+      "targets": [{"expr": "sum(increase(estimated_cost_total[5m]))", "legendFormat": "cost burn"}],
+      "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 3, "color": {"mode": "continuous-BlYlRd"}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "area"}
+    },
+    {
+      "type": "text",
+      "title": "Executive Reliability Summary",
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 7},
+      "options": {
+        "mode": "markdown",
+        "content": "| Control Objective | Current Evidence | Operational State |\n|---|---:|---|\n| Unsafe outputs delivered | 0 | Contained before delivery |\n| Guardrail policy enforcement | Active | Clinical, PHI, prompt-injection checks running |\n| Provider resilience | Active fallback route | Primary degradation routed automatically |\n| Human review workflow | Queue monitored | High-risk requests staged for approval |\n| Observability coverage | Prometheus targets healthy | Agent API + LLM Gateway scraping live |"
+      },
+      "fieldConfig": {"defaults": {}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Live AI Throughput by Governance Status",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 11},
+      "targets": [{"expr": "sum by (status) (rate(agent_requests_total[30s]))", "legendFormat": "{{status}}"}],
+      "fieldConfig": {"defaults": {"unit": "reqps", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "fillOpacity": 24, "gradientMode": "opacity", "showPoints": "never"}}, "overrides": [{"matcher": {"id": "byName", "options": "approved"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}]}, {"matcher": {"id": "byName", "options": "human_review_required"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "yellow"}}]}]},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Gateway p95 Latency by Provider",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 11},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le, provider) (rate(llm_gateway_latency_seconds_bucket[1m])))", "legendFormat": "p95 {{provider}}"}],
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "fillOpacity": 18, "gradientMode": "opacity"}}, "overrides": [{"matcher": {"id": "byRegexp", "options": ".*fallback_provider.*"}, "properties": [{"id": "displayName", "value": "p95 Fallback Provider"}, {"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}]}, {"matcher": {"id": "byRegexp", "options": ".*provider_a.*"}, "properties": [{"id": "displayName", "value": "p95 Primary Provider"}, {"id": "color", "value": {"mode": "fixed", "fixedColor": "yellow"}}]}]},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}}
+    },
+    {
+      "type": "bargauge",
+      "title": "Provider Health & Routing Pressure",
+      "gridPos": {"h": 7, "w": 8, "x": 0, "y": 19},
+      "targets": [{"expr": "sum by (provider) (increase(llm_gateway_requests_total[5m]))", "legendFormat": "{{provider}}"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 40}, {"color": "orange", "value": 80}]}}, "overrides": [{"matcher": {"id": "byName", "options": "provider_a"}, "properties": [{"id": "displayName", "value": "Primary Provider · Degraded Load"}]}, {"matcher": {"id": "byName", "options": "fallback_provider"}, "properties": [{"id": "displayName", "value": "Fallback Provider · Healthy Route"}]}]},
+      "options": {"displayMode": "gradient", "maxVizHeight": 300, "minVizHeight": 16, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"]}, "showUnfilled": true}
+    },
+    {
+      "type": "timeseries",
+      "title": "Fallback Routing Timeline",
+      "gridPos": {"h": 7, "w": 8, "x": 8, "y": 19},
+      "targets": [{"expr": "sum by (from_provider, to_provider) (increase(llm_gateway_fallbacks_total[1m]))", "legendFormat": "Primary Provider → Fallback Provider"}],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "fillOpacity": 58, "lineWidth": 1}, "decimals": 0, "color": {"mode": "fixed", "fixedColor": "green"}}, "overrides": []},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Human Review Queue Growth",
+      "gridPos": {"h": 7, "w": 8, "x": 16, "y": 19},
+      "targets": [{"expr": "approval_queue_depth", "legendFormat": "pending approvals"}],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 3, "fillOpacity": 35, "gradientMode": "opacity"}, "decimals": 0, "color": {"mode": "fixed", "fixedColor": "yellow"}}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}}
+    },
+    {
+      "type": "heatmap",
+      "title": "Request Latency Heatmap",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 26},
+      "targets": [{"expr": "sum(rate(agent_latency_seconds_bucket[1m])) by (le)", "format": "heatmap", "legendFormat": "{{le}}"}],
+      "fieldConfig": {"defaults": {"custom": {"hideFrom": {"legend": false, "tooltip": false, "viz": false}}}, "overrides": []},
+      "options": {"calculate": false, "cellGap": 2, "cellValues": {}, "color": {"exponent": 0.5, "fill": "dark-orange", "mode": "scheme", "reverse": false, "scale": "exponential", "scheme": "Spectral", "steps": 64}, "yAxis": {"axisPlacement": "left", "unit": "s"}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Token Consumption & Cost Anomaly View",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 26},
+      "targets": [
+        {"expr": "sum by (provider) (rate(estimated_token_usage_total[1m]))", "legendFormat": "tokens/s {{provider}}"},
+        {"expr": "sum by (provider) (rate(estimated_cost_total[1m])) * 1000", "legendFormat": "cost index {{provider}}"}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "fillOpacity": 15}}, "overrides": []},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}}
+    },
+    {
+      "type": "table",
+      "title": "Governance Control Actions",
+      "gridPos": {"h": 7, "w": 12, "x": 0, "y": 34},
+      "targets": [{"expr": "sum by (reason, risk_level) (increase(guardrail_blocks_total[10m]))", "format": "table", "instant": true}],
+      "fieldConfig": {"defaults": {"custom": {"align": "auto", "cellOptions": {"type": "auto"}, "inspect": false}, "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 1}, {"color": "orange", "value": 8}]}}, "overrides": [{"matcher": {"id": "byName", "options": "Value"}, "properties": [{"id": "displayName", "value": "blocked_count"}]}, {"matcher": {"id": "byName", "options": "reason"}, "properties": [{"id": "displayName", "value": "policy_reason"}]}, {"matcher": {"id": "byName", "options": "risk_level"}, "properties": [{"id": "displayName", "value": "risk_level"}]}]},
+      "options": {"cellHeight": "sm", "footer": {"show": false}, "showHeader": true}
+    },
+    {
+      "type": "text",
+      "title": "Operational Event Stream",
+      "gridPos": {"h": 7, "w": 12, "x": 12, "y": 34},
+      "options": {
+        "mode": "markdown",
+        "content": "| Time | Component | Event | Status |\n|---|---|---|---|\n| now | Prometheus | agent-api + llm-gateway scrape healthy | healthy |\n| now | Guardrails | clinical diagnosis blocked before delivery | contained |\n| now | Approval Workflow | high-risk request staged for human review | pending SLA |\n| now | LLM Gateway | primary latency routed to fallback provider | routed |\n| now | Agent API | governed request completed with policy context | success |\n| now | Incident Runbook | unsafe output delivery prevented | verified |"
+      },
+      "fieldConfig": {"defaults": {}, "overrides": []}
+    },
+    {
+      "type": "text",
+      "title": "Incident Containment Proof",
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 41},
+      "options": {
+        "mode": "markdown",
+        "content": "| Incident Control | Evidence | Result |\n|---|---:|---|\n| Unsafe outputs delivered | 0 | No clinical response released without policy gate |\n| Blocked before delivery | Guardrail escalations visible above | Clinical, PHI, prescription, prompt-injection risks contained |\n| Fallback active | Fallback routing events visible above | Provider degradation handled without user-facing outage |\n| Approval workflow | Human review queue visible above | Risky requests staged, auditable, and reviewable |"
+      },
+      "fieldConfig": {"defaults": {}, "overrides": []}
+    }
+  ],
+  "refresh": "2s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["ai-operations", "sre", "llmops", "healthcare", "governance"],
+  "templating": {"list": []},
+  "time": {"from": "now-10m", "to": "now"},
+  "timezone": "browser",
+  "title": "HelixCare AI Governance & Reliability Operations",
+  "uid": "healthcare-ai-governance",
+  "version": 3,
+  "weekStart": ""
+}

@@ -1,0 +1,1124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HelixCare AI · Command Center</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    :root {
+      --bg: #0b1121;
+      --panel: #111827;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --sidebar-width: 240px;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: #0f172a;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .brand {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      justify-content: space-between;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .brand-logo svg { width: 20px; height: 20px; color: var(--primary); }
+    .close-icon { color: var(--text-muted); cursor: pointer; font-size: 14px; }
+    
+    .nav {
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 12px;
+    }
+    .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text); }
+    .nav-item.active { background-color: var(--primary); color: white; }
+    
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .env-info { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+    .env-label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .env-value { display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 12px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--success); display: inline-block; }
+    
+    .meta-group { display: flex; flex-direction: column; gap: 2px; }
+    .meta-label { color: var(--text-muted); font-size: 10px; }
+    
+    .btn-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background-color: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    
+    /* Main Content */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .header {
+      height: 60px;
+      background-color: #0f172a;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .hamburger { cursor: pointer; color: var(--text-muted); font-size: 16px; }
+    .header-title { font-size: 14px; font-weight: 600; margin-left: 8px; }
+    
+    .header-right { display: flex; align-items: center; gap: 24px; }
+    .status-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); cursor: pointer; }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      gap: 8px;
+      color: var(--text-muted);
+      width: 220px;
+      justify-content: space-between;
+    }
+    .search-box input { background: transparent; border: none; color: var(--text); outline: none; flex: 1; font-size: 12px; width: 100%; }
+    .search-shortcut { background: #1e293b; padding: 2px 4px; border-radius: 4px; font-size: 9px; color: var(--text-muted); }
+    
+    .actions { display: flex; align-items: center; gap: 16px; }
+    .icon-btn { position: relative; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; }
+    .badge { position: absolute; top: -4px; right: -6px; background-color: var(--primary); color: white; font-size: 9px; padding: 1px 4px; border-radius: 8px; font-weight: 600; border: 1px solid #0f172a; }
+    .profile { display: flex; align-items: center; gap: 10px; border-left: 1px solid var(--border); padding-left: 16px; margin-left: 8px; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+    .profile-info { display: flex; flex-direction: column; }
+    .profile-name { font-weight: 500; font-size: 11px; }
+    .profile-role { color: var(--text-muted); font-size: 10px; }
+    
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    /* Overview Header */
+    .overview-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
+    .page-title h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .page-title p { color: var(--text-muted); font-size: 12px; }
+    .overview-actions { display: flex; gap: 12px; }
+    .btn-select { background-color: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11px; }
+    .btn-primary { background-color: var(--primary); border: none; color: white; padding: 6px 16px; border-radius: 6px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; font-size: 11px; }
+    
+    /* Grid Layouts */
+    .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+    
+    .panel { background-color: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; position: relative; }
+    .panel-title { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; width: 100%; }
+    .panel-title .view-all { color: var(--primary); font-size: 11px; cursor: pointer; text-decoration: none; font-weight: 500; }
+    
+    /* KPI Card */
+    .kpi-card { padding: 12px 16px 10px 16px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; min-height: 114px; }
+    .kpi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; width: 100%; }
+    .kpi-title { color: var(--text-muted); font-size: 11px; font-weight: 500; }
+    .kpi-icon { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); font-size: 10px; background: transparent; }
+    .kpi-icon.blue { color: var(--primary); border-color: rgba(59,130,246,0.3); }
+    .kpi-icon.purple { color: var(--purple); border-color: rgba(139,92,246,0.3); }
+    .kpi-icon.amber { color: var(--warning); border-color: rgba(245,158,11,0.3); }
+    .kpi-icon.green { color: var(--success); border-color: rgba(16,185,129,0.3); }
+    .kpi-icon.yellow { color: #facc15; border-color: rgba(250,204,21,0.3); }
+    .kpi-value { font-size: 24px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .kpi-trend { font-size: 10px; display: flex; align-items: center; gap: 4px; color: var(--text-muted); }
+    .kpi-chart { height: 30px; width: 100%; margin-left: 0; margin-top: 8px; padding: 2px 0 0; flex-shrink: 0; }
+    
+    /* Charts layout */
+    .middle-grid { display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr; gap: 16px; }
+    
+    .chart-panel { min-height: 240px; display: flex; flex-direction: column; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; width: 100%; }
+    .chart-header .title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+    .info-icon { color: var(--text-muted); width: 12px; height: 12px; }
+    .chart-select { background: transparent; border: none; color: var(--text-muted); font-size: 10px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+    
+    .line-chart { flex: 1; position: relative; margin-top: 8px; margin-bottom: 24px; min-height: 120px; overflow: visible; }
+    .chart-y-axis { position: absolute; left: 0; top: 4px; bottom: 4px; display: flex; flex-direction: column; justify-content: space-between; color: var(--text-muted); font-size: 9px; width: 25px; }
+    .chart-area { position: absolute; left: 34px; right: 8px; top: 4px; bottom: 6px; overflow: visible; }
+    .chart-x-axis { position: absolute; left: 34px; right: 8px; bottom: -19px; display: flex; justify-content: space-between; color: var(--text-muted); font-size: 9px; width: auto; }
+    .chart-x-axis span { flex: 1; text-align: center; }
+    .chart-x-axis span:first-child { text-align: left; }
+    .chart-x-axis span:last-child { text-align: right; }
+    .chart-legend { display: flex; gap: 12px; font-size: 10px; color: var(--text-muted); margin-top: auto; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+    
+    /* Donut Chart */
+    .donut-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 12px; padding: 0 10px; }
+    .donut-chart { width: 112px; height: 112px; position: relative; border-radius: 50%; background: conic-gradient(var(--primary) 0% 45.6%, var(--purple) 45.6% 77.7%, var(--warning) 77.7% 96.4%, #475569 96.4% 100%); display: flex; align-items: center; justify-content: center; }
+    .donut-hole { width: 80px; height: 80px; background-color: var(--panel); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .donut-value { font-size: 16px; font-weight: 600; margin-bottom: -2px; }
+    .donut-label { font-size: 10px; color: var(--text-muted); }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; font-size: 10px; width: 100%; }
+    .donut-legend-item { display: flex; width: 100%; }
+    .donut-legend-label { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+    .donut-legend-val { font-weight: 500; color: var(--text); margin-left: auto; }
+    
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 8px 6px; color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--border); font-size: 10px; }
+    td { padding: 10px 6px; border-bottom: 1px solid var(--border); font-size: 11px; }
+    tr:last-child td { border-bottom: none; }
+    
+    .tag { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; border: 1px solid; display: inline-block; text-align: center; }
+    .tag-danger { background: rgba(239,68,68,0.15); color: #fca5a5; border-color: rgba(239,68,68,0.3); }
+    .tag-warning { background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.3); }
+    .tag-success { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.3); }
+    .tag-outline-warning { background: transparent; color: var(--warning); border-color: var(--warning); }
+    
+    /* Risk Stats */
+    .risk-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .risk-stat { display: flex; flex-direction: column; gap: 2px; }
+    .risk-stat-label { color: var(--text-muted); font-size: 10px; }
+    .risk-stat-val { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .risk-spark { height: 12px; width: 100%; margin-bottom: 2px; }
+    .risk-stat-trend { font-size: 10px; display: flex; align-items: center; gap: 2px; }
+    
+    /* Feed / Alerts */
+    .feed-list { display: flex; flex-direction: column; gap: 0; width: 100%; }
+    .feed-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: flex-start; width: 100%; }
+    .feed-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .feed-icon { margin-top: 2px; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted); font-size: 12px; }
+    .feed-icon.danger { color: var(--danger); }
+    .feed-icon.warning { color: var(--warning); }
+    .feed-icon.success { color: var(--success); }
+    .feed-icon.primary { color: var(--primary); }
+    .feed-content { flex: 1; }
+    .feed-title { font-size: 11px; font-weight: 400; color: var(--text); margin-bottom: 2px; }
+    .feed-desc { color: var(--text-muted); font-size: 10px; }
+    .feed-time { color: var(--text-muted); font-size: 10px; white-space: nowrap; margin-left: auto; }
+    
+    /* Architecture Diagram */
+    .arch-grid-wrapper { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-top: 16px; }
+    
+    .arch-container { position: relative; padding: 14px 0 26px 0; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+    .arch-flow { display: grid; grid-template-columns: 0.9fr 14px 1fr 14px 1.1fr 14px 1fr 14px 1fr 14px 1.05fr; align-items: center; position: relative; z-index: 2; column-gap: 6px; }
+    .arch-node { background: #0b1120; border: 1px solid #1e293b; border-radius: 7px; padding: 8px 6px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 68px; justify-content: center; position: relative; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03); }
+    .arch-node-title { font-size: 10px; font-weight: 600; white-space: nowrap; }
+    .arch-node-sub { font-size: 8px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; white-space: nowrap; line-height: 1.1; }
+    .arch-node-icon { color: var(--text-muted); margin-bottom: 2px; font-size: 14px; }
+    .arch-arrow { color: #475569; font-size: 12px; text-align: center; }
+    
+    /* CSS Grid Dotted Lines */
+    .arch-lines-container {
+      position: absolute;
+      left: 11%;
+      right: 11%;
+      bottom: 18px;
+      height: 44px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .arch-line-left {
+      position: absolute; left: 0; top: 0; width: 45%; height: 100%;
+      border-left: 1.5px dashed #334155;
+      border-bottom: 1.5px dashed #334155;
+      border-bottom-left-radius: 8px;
+    }
+    .arch-line-right {
+      position: absolute; right: 0; top: 0; width: 45%; height: 100%;
+      border-right: 1.5px dashed #334155;
+      border-bottom: 1.5px dashed #334155;
+      border-bottom-right-radius: 8px;
+    }
+
+    .obs-stack { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); background: #0b1120; border: 1px solid rgba(59,130,246,0.35); border-radius: 7px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; z-index: 3; min-width: 160px; justify-content: center; }
+    
+    /* Compliance Donut */
+    .comp-container { display: flex; flex-direction: row; align-items: center; justify-content: center; height: 100%; gap: 28px; padding: 8px 14px 0; }
+    .comp-chart { position: relative; width: 132px; height: 92px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+    .comp-list { display: flex; flex-direction: column; gap: 7px; flex: 1; max-width: 190px; }
+    .comp-item { display: flex; justify-content: space-between; gap: 18px; font-size: 10px; width: 100%; }
+    .comp-item-label { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+    .comp-item-val { color: var(--success); }
+    
+    /* Utility */
+    svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" style="fill: currentColor; stroke: none; color: #3b82f6;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        HelixCare AI
+      </div>
+      <div class="close-icon">✕</div>
+    </div>
+    
+    <div class="nav">
+      <a href="#" class="nav-item active"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Overview</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> AI Operations</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Governance</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Risk & Compliance</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Observability</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Incidents</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg> Approvals</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg> Model Gateway</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Cost Management</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Reports</a>
+      <a href="#" class="nav-item"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</a>
+    </div>
+    
+    <div class="sidebar-footer">
+      <div class="env-info">
+        <div class="env-label">ENVIRONMENT</div>
+        <div class="env-value"><span class="dot"></span> Production</div>
+      </div>
+      <div class="meta-group">
+        <div class="meta-label">Region</div>
+        <div style="font-size:11px; font-weight:500;">us-east-1</div>
+      </div>
+      <div class="meta-group" style="margin-top:2px;">
+        <div class="meta-label">Version</div>
+        <div style="font-size:11px; font-weight:500;">v2.4.1</div>
+      </div>
+      <div class="meta-group" style="margin-top:2px;">
+        <div class="meta-label">Last Deployed</div>
+        <div style="font-size:11px; font-weight:500;">May 18, 2025 3:45 PM</div>
+      </div>
+      <button class="btn-status">
+        <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> View System Status
+      </button>
+    </div>
+  </aside>
+  
+  <div class="main">
+    <header class="header">
+      <div class="header-left">
+        <div class="hamburger">☰</div>
+        <div class="header-title">AI Governance & Reliability Command Center</div>
+      </div>
+      <div class="header-right">
+        <div class="status-badge"><span class="dot"></span> All Systems Operational <span style="font-size:8px; margin-left:2px;">▼</span></div>
+        <div class="search-box">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" placeholder="Search" />
+          </div>
+          <span class="search-shortcut">⌘K</span>
+        </div>
+        <div class="actions">
+          <div class="icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+          <div class="icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="badge">12</span>
+          </div>
+        </div>
+        <div class="profile">
+          <img src="https://i.pravatar.cc/100?img=33" class="avatar" alt="User" />
+          <div class="profile-info">
+            <span class="profile-name">Ops Team</span>
+            <span class="profile-role">Platform Admin</span>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <div class="content">
+      <div class="overview-header">
+        <div class="page-title">
+          <h1>Executive Overview</h1>
+          <p>Post-remediation operational status of the AI Governance Platform</p>
+        </div>
+        <div class="overview-actions">
+          <button class="btn-select">
+            <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> 
+            Last 6 hours <span style="font-size:8px; margin-left:4px;">▼</span>
+          </button>
+          <button class="btn-primary">
+            <svg width="12" height="12" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> 
+            Refresh <span style="font-size:8px; margin-left:4px;">▼</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="panel kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-title">AI Requests Governed</div>
+            <div class="kpi-icon blue"><svg viewBox="0 0 24 24" width="10" height="10"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+          </div>
+          <div class="kpi-value">24,842</div>
+          <div class="kpi-trend"><span class="trend-up" style="color:var(--success)">↑ 28.5%</span> <span style="margin-left:4px;">vs last 6h</span></div>
+          <div class="kpi-chart">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none" style="width:100%;height:100%;"><polyline points="0,19 10,19 20,18.8 30,18.6 40,18.4 50,17.8 60,16.8 70,14.5 80,11.5 90,10.2 100,12.8" fill="none" stroke="#facc15" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        
+        <div class="panel kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-title">Unsafe Outputs Prevented</div>
+            <div class="kpi-icon purple"><svg viewBox="0 0 24 24" width="10" height="10"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+          </div>
+          <div class="kpi-value">1,243</div>
+          <div class="kpi-trend"><span style="color:var(--success)">✓ 100%</span> <span style="margin-left:4px;">blocked before delivery</span></div>
+          <div class="kpi-chart">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none" style="width:100%;height:100%;"><polyline points="0,18 10,18 20,18 30,17.5 40,16.5 50,14.2 60,13.8 70,16.4 80,19.1 90,20.2 100,18.4" fill="none" stroke="#8b5cf6" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        
+        <div class="panel kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-title">Human Reviews Completed</div>
+            <div class="kpi-icon amber"><svg viewBox="0 0 24 24" width="10" height="10"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="17" y1="11" x2="23" y2="11"></line></svg></div>
+          </div>
+          <div class="kpi-value">327</div>
+          <div class="kpi-trend"><span style="color:var(--success)">✓ 100%</span> <span style="margin-left:4px;">reviewed within SLA</span></div>
+          <div class="kpi-chart">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none" style="width:100%;height:100%;"><polyline points="0,21 10,20.8 20,20.2 30,18.8 40,17.4 50,17.2 60,18.2 70,19.4 80,18.8 90,15.8 100,13.2" fill="none" stroke="#f59e0b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        
+        <div class="panel kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-title">Platform Reliability (SLO)</div>
+            <div class="kpi-icon green"><svg viewBox="0 0 24 24" width="10" height="10"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+          </div>
+          <div class="kpi-value">99.98%</div>
+          <div class="kpi-trend"><span class="trend-up" style="color:var(--success)">↑ 0.02%</span> <span style="margin-left:4px;">vs last 6h</span></div>
+          <div class="kpi-chart">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none" style="width:100%;height:100%;"><polyline points="0,16.8 10,16.8 20,16.7 30,16.7 40,16.6 50,16.4 60,16.1 70,16.5 80,16.9 90,16.7 100,16.3" fill="none" stroke="#10b981" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        
+        <div class="panel kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-title">Est. Cost (USD)</div>
+            <div class="kpi-icon yellow"><svg viewBox="0 0 24 24" width="10" height="10"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+          </div>
+          <div class="kpi-value">$1,842.77</div>
+          <div class="kpi-trend"><span class="trend-down" style="color:var(--success)">↓ 8.4%</span> <span style="margin-left:4px;">cost optimized</span></div>
+          <div class="kpi-chart">
+            <svg viewBox="0 0 100 26" preserveAspectRatio="none" style="width:100%;height:100%;"><polyline points="0,13.5 10,13.4 20,13.2 30,13.1 40,13 50,13.3 60,15.6 70,18.9 80,17.4 90,11.8 100,8.6" fill="none" stroke="#facc15" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Charts Middle Row -->
+      <div class="middle-grid">
+        <div class="panel chart-panel">
+          <div class="chart-header">
+            <div class="title">AI Request Throughput <svg class="info-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+            <div class="chart-select">Requests/sec ▼</div>
+          </div>
+          <div class="line-chart">
+            <div class="chart-y-axis"><span>8K</span><span>6K</span><span>4K</span><span>2K</span><span>0</span></div>
+            <div class="chart-area">
+              <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0 75 C 5 75, 10 75, 15 65 C 20 50, 25 80, 30 80 C 35 80, 40 40, 45 35 C 50 30, 55 90, 60 85 C 65 80, 70 20, 75 10 C 80 0, 85 90, 90 85 C 95 80, 95 40, 100 45" fill="none" stroke="#3b82f6" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+                <path d="M0 75 C 5 75, 10 75, 15 65 C 20 50, 25 80, 30 80 C 35 80, 40 40, 45 35 C 50 30, 55 90, 60 85 C 65 80, 70 20, 75 10 C 80 0, 85 90, 90 85 C 95 80, 95 40, 100 45 L 100 100 L 0 100 Z" fill="url(#blueGrad)" stroke="none"/>
+                <!-- grid lines -->
+                <line x1="0" y1="25" x2="100" y2="25" stroke="#1f2937" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+                <line x1="0" y1="50" x2="100" y2="50" stroke="#1f2937" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+                <line x1="0" y1="75" x2="100" y2="75" stroke="#1f2937" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+              </svg>
+            </div>
+            <div class="chart-x-axis"><span>08:00</span><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span><span>13:00</span></div>
+          </div>
+          <div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> Total Requests</div></div>
+        </div>
+        
+        <div class="panel chart-panel">
+          <div class="chart-header">
+            <div class="title">LLM Gateway Latency (p95) <svg class="info-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+            <div class="chart-select">Milliseconds ▼</div>
+          </div>
+          <div class="line-chart">
+            <div class="chart-y-axis"><span>2s</span><span>1.5s</span><span>1s</span><span>500ms</span><span>0ms</span></div>
+            <div class="chart-area">
+              <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 70 L 5 60 L 10 50 L 15 65 L 20 40 L 25 50 L 30 65 L 35 45 L 40 60 L 45 40 L 50 60 L 55 50 L 60 70 L 65 50 L 70 65 L 75 45 L 80 65 L 85 45 L 90 60 L 95 40 L 100 50" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+                <line x1="0" y1="25" x2="100" y2="25" stroke="#1f2937" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+                <line x1="0" y1="50" x2="100" y2="50" stroke="#1f2937" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+                <line x1="0" y1="75" x2="100" y2="75" stroke="#1f2937" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+              </svg>
+            </div>
+            <div class="chart-x-axis"><span>08:00</span><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span><span>13:00</span></div>
+          </div>
+          <div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div> p95 Latency</div></div>
+        </div>
+        
+        <div class="panel chart-panel">
+          <div class="panel-title">Model Provider Routing</div>
+          <div class="donut-container">
+            <div class="donut-chart">
+              <div class="donut-hole">
+                <div class="donut-value">24,842</div>
+                <div class="donut-label">Total</div>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="donut-legend-item">
+                <div class="donut-legend-label"><div class="legend-dot" style="background:var(--primary)"></div> Provider A</div>
+                <div class="donut-legend-val">45.6%</div>
+              </div>
+              <div class="donut-legend-item">
+                <div class="donut-legend-label"><div class="legend-dot" style="background:var(--purple)"></div> Provider B</div>
+                <div class="donut-legend-val">32.1%</div>
+              </div>
+              <div class="donut-legend-item">
+                <div class="donut-legend-label"><div class="legend-dot" style="background:var(--warning)"></div> Fallback Provider</div>
+                <div class="donut-legend-val" style="color:var(--warning)">18.7%</div>
+              </div>
+              <div class="donut-legend-item">
+                <div class="donut-legend-label"><div class="legend-dot" style="background:#475569"></div> Other</div>
+                <div class="donut-legend-val">3.6%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel chart-panel">
+          <div class="panel-title">Resolved Controls <a href="#" class="view-all">View All</a></div>
+          <div class="feed-list" style="overflow-y:auto; flex:1; gap:16px;">
+            <div class="feed-item" style="padding:0; border:none; margin-bottom:12px;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content">
+                <div class="feed-title">Risky requests safely contained</div>
+                <div class="feed-desc">Guardrails</div>
+              </div>
+              <div class="feed-time">2m ago</div>
+            </div>
+            <div class="feed-item" style="padding:0; border:none; margin-bottom:12px;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content">
+                <div class="feed-title">Provider latency routed through fallback</div>
+                <div class="feed-desc">LLM Gateway</div>
+              </div>
+              <div class="feed-time">5m ago</div>
+            </div>
+            <div class="feed-item" style="padding:0; border:none; margin-bottom:12px;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content">
+                <div class="feed-title">Approval queue within SLA</div>
+                <div class="feed-desc">Human-in-the-loop</div>
+              </div>
+              <div class="feed-time">7m ago</div>
+            </div>
+            <div class="feed-item" style="padding:0; border:none; margin-bottom:12px;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content">
+                <div class="feed-title">Fallback policy operating normally</div>
+                <div class="feed-desc">LLM Gateway</div>
+              </div>
+              <div class="feed-time">12m ago</div>
+            </div>
+            <div class="feed-item" style="padding:0; border:none;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content">
+                <div class="feed-title">PII controls verified</div>
+                <div class="feed-desc">Governance</div>
+              </div>
+              <div class="feed-time">15m ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Grid First Row -->
+      <div style="display:grid; grid-template-columns: 2.5fr 3fr 1.5fr; gap:16px; margin-top:0px;">
+        <div class="panel">
+          <div class="panel-title">Risk Reduction & Governance Outcomes</div>
+          <div class="risk-stats">
+            <div class="risk-stat">
+              <div class="risk-stat-label">High Risk Requests</div>
+              <div class="risk-stat-val">12</div>
+              <div class="risk-spark"><svg viewBox="0 0 50 10" preserveAspectRatio="none" style="width:100%;height:100%;"><path d="M0 3 L10 4 L20 5 L30 6 L40 7 L50 8" fill="none" stroke="#10b981" stroke-width="1.5"/></svg></div>
+              <div class="risk-stat-trend"><span style="color:var(--success)">↓ 95.1%</span></div>
+            </div>
+            <div class="risk-stat">
+              <div class="risk-stat-label">Policy Violations</div>
+              <div class="risk-stat-val">0</div>
+              <div class="risk-spark"><svg viewBox="0 0 50 10" preserveAspectRatio="none" style="width:100%;height:100%;"><path d="M0 2 L10 4 L20 6 L30 7 L40 8 L50 8" fill="none" stroke="#10b981" stroke-width="1.5"/></svg></div>
+              <div class="risk-stat-trend"><span style="color:var(--success)">↓ 100%</span></div>
+            </div>
+            <div class="risk-stat">
+              <div class="risk-stat-label">PII Exposure</div>
+              <div class="risk-stat-val">0</div>
+              <div class="risk-spark"><svg viewBox="0 0 50 10" preserveAspectRatio="none" style="width:100%;height:100%;"><path d="M0 2 L10 4 L20 6 L30 7 L40 8 L50 8" fill="none" stroke="#10b981" stroke-width="1.5"/></svg></div>
+              <div class="risk-stat-trend"><span style="color:var(--success)">↓ 100%</span></div>
+            </div>
+            <div class="risk-stat">
+              <div class="risk-stat-label">Prompt Injection Impact</div>
+              <div class="risk-stat-val">0</div>
+              <div class="risk-spark"><svg viewBox="0 0 50 10" preserveAspectRatio="none" style="width:100%;height:100%;"><path d="M0 2 L10 3 L20 5 L30 7 L40 8 L50 8" fill="none" stroke="#10b981" stroke-width="1.5"/></svg></div>
+              <div class="risk-stat-trend"><span style="color:var(--success)">↓ 100%</span></div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Control Area</th>
+                <th>Final State</th>
+                <th>Outcome</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Clinical Diagnosis Requests</td>
+                <td><span class="tag tag-success">Contained</span></td>
+                <td><span style="color:var(--success)">0 unsafe outputs delivered</span></td>
+              </tr>
+              <tr>
+                <td>Medication / Prescription Advice</td>
+                <td><span class="tag tag-success">Reviewed</span></td>
+                <td><span style="color:var(--success)">100% human-gated</span></td>
+              </tr>
+              <tr>
+                <td>PII / Patient Data</td>
+                <td><span class="tag tag-success">Protected</span></td>
+                <td><span style="color:var(--success)">No exposure detected</span></td>
+              </tr>
+              <tr>
+                <td>Prompt Injection</td>
+                <td><span class="tag tag-success">Blocked</span></td>
+                <td><span style="color:var(--success)">Policy enforced</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="panel">
+          <div class="panel-title">Approval Queue <a href="#" class="view-all">View All</a></div>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Request Summary</th>
+                <th>Risk Level</th>
+                <th>SLA</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color:var(--text-muted)">APR-8391</td>
+                <td>Clinical diagnosis request contained</td>
+                <td><span class="tag tag-success">Controlled</span></td>
+                <td>Met</td>
+                <td><span class="tag tag-success">Reviewed</span></td>
+              </tr>
+              <tr>
+                <td style="color:var(--text-muted)">APR-8390</td>
+                <td>Medication guidance routed to review</td>
+                <td><span class="tag tag-success">Controlled</span></td>
+                <td>Met</td>
+                <td><span class="tag tag-success">Approved</span></td>
+              </tr>
+              <tr>
+                <td style="color:var(--text-muted)">APR-8389</td>
+                <td>Patient record access blocked</td>
+                <td><span class="tag tag-success">Protected</span></td>
+                <td>Met</td>
+                <td><span class="tag tag-success">Resolved</span></td>
+              </tr>
+              <tr>
+                <td style="color:var(--text-muted)">APR-8388</td>
+                <td>Treatment workflow escalated safely</td>
+                <td><span class="tag tag-success">Controlled</span></td>
+                <td>Met</td>
+                <td><span class="tag tag-success">Reviewed</span></td>
+              </tr>
+              <tr>
+                <td style="color:var(--text-muted)">APR-8387</td>
+                <td>Lab result explanation policy-checked</td>
+                <td><span class="tag tag-success">Compliant</span></td>
+                <td>Met</td>
+                <td><span class="tag tag-success">Cleared</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top:12px"><a href="#" class="view-all" style="font-size:11px;">View all</a></div>
+        </div>
+        
+        <div class="panel">
+          <div class="panel-title">Live Activity Feed <a href="#" class="view-all">View All</a></div>
+          <div class="feed-list" style="margin-top:0px;">
+            <div class="feed-item" style="padding:6px 0;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content"><div class="feed-title">Request processed successfully</div></div>
+              <div class="feed-time">2s ago</div>
+            </div>
+            <div class="feed-item" style="padding:6px 0;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content"><div class="feed-title">Unsafe output blocked before delivery</div></div>
+              <div class="feed-time">5s ago</div>
+            </div>
+            <div class="feed-item" style="padding:6px 0;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--warning)"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></div>
+              <div class="feed-content"><div class="feed-title">Human review completed within SLA</div></div>
+              <div class="feed-time">8s ago</div>
+            </div>
+            <div class="feed-item" style="padding:6px 0;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--primary)"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></div>
+              <div class="feed-content"><div class="feed-title">Fallback provider verified healthy</div></div>
+              <div class="feed-time">12s ago</div>
+            </div>
+            <div class="feed-item" style="padding:6px 0;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content"><div class="feed-title">Approval completed</div></div>
+              <div class="feed-time">18s ago</div>
+            </div>
+            <div class="feed-item" style="padding:6px 0;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content"><div class="feed-title">Provider latency recovered</div></div>
+              <div class="feed-time">22s ago</div>
+            </div>
+            <div class="feed-item" style="padding:6px 0;">
+              <div class="feed-icon"><svg viewBox="0 0 24 24" width="12" height="12" style="color:var(--success)"><circle cx="12" cy="12" r="10"></circle><polyline points="16 9 10 15 8 13"></polyline></svg></div>
+              <div class="feed-content"><div class="feed-title">Request processed successfully</div></div>
+              <div class="feed-time">25s ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Grid Second Row -->
+      <div class="arch-grid-wrapper">
+        <div class="panel">
+          <div class="panel-title">Implemented Platform Architecture</div>
+          <div class="arch-container">
+            <div class="arch-flow">
+              <div class="arch-node">
+                <div class="arch-node-icon"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+                <div class="arch-node-title">Healthcare User</div>
+                <div class="arch-node-sub">AI request</div>
+              </div>
+              <div class="arch-arrow">→</div>
+              <div class="arch-node" style="border-color: rgba(16,185,129,0.35);">
+                <div class="arch-node-icon"><svg width="14" height="14" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <div class="arch-node-title">NGINX Ingress</div>
+                <div class="arch-node-sub"><span style="color:var(--success)">●</span> port 8080</div>
+              </div>
+              <div class="arch-arrow">→</div>
+              <div class="arch-node" style="border-color: rgba(59,130,246,0.35);">
+                <div class="arch-node-icon"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="arch-node-title">Agent API</div>
+                <div class="arch-node-sub"><span style="color:var(--primary)">●</span> FastAPI :8010</div>
+              </div>
+              <div class="arch-arrow">→</div>
+              <div class="arch-node" style="border-color: rgba(139,92,246,0.35);">
+                <div class="arch-node-icon"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                <div class="arch-node-title">Guardrails</div>
+                <div class="arch-node-sub"><span style="color:var(--purple)">●</span> policy engine</div>
+              </div>
+              <div class="arch-arrow">→</div>
+              <div class="arch-node" style="border-color: rgba(245,158,11,0.35);">
+                <div class="arch-node-icon"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                <div class="arch-node-title">Approval Queue</div>
+                <div class="arch-node-sub"><span style="color:var(--warning)">●</span> human review</div>
+              </div>
+              <div class="arch-arrow">→</div>
+              <div class="arch-node" style="border-color: rgba(245,158,11,0.35);">
+                <div class="arch-node-icon"><svg width="14" height="14" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <div class="arch-node-title">LLM Gateway</div>
+                <div class="arch-node-sub"><span style="color:var(--warning)">●</span> fallback route</div>
+              </div>
+            </div>
+
+            <div class="arch-lines-container">
+              <div class="arch-line-left"></div>
+              <div class="arch-line-right"></div>
+            </div>
+
+            <div class="obs-stack">
+              <div style="color:var(--primary);"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
+              <div>
+                <div style="font-weight:600; font-size:10px;">Prometheus + Grafana</div>
+                <div style="font-size:8px; color:var(--text-muted);">metrics, SLOs, cost, incidents</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <div class="panel-title">Recent Incidents <a href="#" class="view-all">View All</a></div>
+          <div class="feed-list" style="margin-top:0px;">
+            <div class="feed-item" style="border:none; padding:4px 0; display:block;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                <span style="color:var(--text-muted); font-size:10px;">INC-4452</span>
+                <span style="font-size:9px; color:#059669; font-weight:500;">Closed</span>
+              </div>
+              <div style="font-size:11px; font-weight:400;">Clinical risk spike fully contained</div>
+            </div>
+            <div class="feed-item" style="border:none; padding:4px 0; display:block;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                <span style="color:var(--text-muted); font-size:10px;">INC-4451</span>
+                <span style="font-size:9px; color:#059669; font-weight:500;">Closed</span>
+              </div>
+              <div style="font-size:11px; font-weight:400;">Provider latency remediated by routing policy</div>
+            </div>
+            <div class="feed-item" style="border:none; padding:4px 0; display:block;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                <span style="color:var(--text-muted); font-size:10px;">INC-4450</span>
+                <span style="font-size:9px; color:#059669; font-weight:500;">Closed</span>
+              </div>
+              <div style="font-size:11px; font-weight:400;">Fallback routing policy normalized</div>
+            </div>
+            <div class="feed-item" style="border:none; padding:4px 0; display:block;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                <span style="color:var(--text-muted); font-size:10px;">INC-4449</span>
+                <span style="font-size:9px; color:#059669; font-weight:500;">Closed</span>
+              </div>
+              <div style="font-size:11px; font-weight:400;">Approval queue cleared within SLA</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <div class="panel-title">Compliance Posture</div>
+          <div class="comp-container">
+            <div class="comp-chart">
+              <!-- Half Donut SVG -->
+              <svg viewBox="0 0 140 92" style="width:132px;height:92px;overflow:visible;">
+                <path d="M 18 72 A 52 52 0 0 1 122 72" fill="none" stroke="#1f2937" stroke-width="14" stroke-linecap="round"/>
+                <path d="M 18 72 A 52 52 0 0 1 119 56" fill="none" stroke="#10b981" stroke-width="14" stroke-linecap="round"/>
+              </svg>
+              <div style="position:absolute; top:45px; left:0; right:0; display:flex; flex-direction:column; align-items:center; line-height:1.05;">
+                <div style="font-size:20px; font-weight:700; letter-spacing:-0.02em;">98.6%</div>
+                <div style="font-size:9px; color:var(--text-muted); margin-top:3px;">Compliant</div>
+              </div>
+            </div>
+            <div class="comp-list">
+              <div class="comp-item">
+                <div class="comp-item-label"><span class="dot"></span> HIPAA</div>
+                <div class="comp-item-val" style="color: #059669;">Compliant</div>
+              </div>
+              <div class="comp-item">
+                <div class="comp-item-label"><span class="dot"></span> SOC 2</div>
+                <div class="comp-item-val" style="color: #059669;">Compliant</div>
+              </div>
+              <div class="comp-item">
+                <div class="comp-item-label"><span class="dot"></span> ISO 27001</div>
+                <div class="comp-item-val" style="color: #059669;">Compliant</div>
+              </div>
+              <div class="comp-item">
+                <div class="comp-item-label"><span class="dot"></span> Internal Policies</div>
+                <div class="comp-item-val" style="color: #059669;">Compliant</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+
+creole@CreoleStudios:~/Downloads/MitShah-main/MitShah-main$ claude
+ ▐▛███▜▌   Claude Code v2.1.144
+ ▐▛███▜▌   Claude Code v2.1.144
+▝▜█████▛▘  cx/gpt-5.5 · API Usage Billing
+  ▘▘ ▝▝    ~/Downloads/MitShah-main/MitShah-main
+
+❯ /mcp 
+ ▐▛███▜▌   Claude Code v2.1.144
+▝▜█████▛▘  cx/gpt-5.5 · API Usage Billing
+  ▘▘ ▝▝    ~/Downloads/MitShah-main/MitShah-main
+
+❯ /mcp 
+  ⎿  MCP dialog dismissed
+
+❯ /reload-plugins                                                                                                                    
+  ⎿  Reloaded: 3 plugins · 2 skills · 9 agents · 15 hooks · 1 plugin MCP server · 0 plugin LSP servers
+     1 error during load. Run /doctor for details.
+
+❯ /doctor                                                                                                                            
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Diagnostics
+  ├ Currently running: native (2.1.144)
+  ├ Commit: 32281b6b930f
+  ├ Platform: linux-x64
+  ├ Path: /home/creole/.local/share/claude/versions/2.1.144
+  ├ Config install method: native
+  └ Search: OK (bundled)
+
+  Updates
+  ├ Auto-updates: enabled
+  ├ Auto-update channel: latest
+  └ Checking for updates…
+
+  Background server
+  └ Status: not running
+  └ Mode: ephemeral
+  └ Mode: ephemeral
+ ▐▛███▜▌   Claude Code v2.1.144
+▝▜█████▛▘  cx/gpt-5.5 · API Usage Billing
+  ▘▘ ▝▝    ~/Downloads/MitShah-main/MitShah-main
+
+❯ /mcp 
+  ⎿  MCP dialog dismissed
+
+❯ /reload-plugins                                                                                                                    
+  ⎿  Reloaded: 3 plugins · 2 skills · 9 agents · 15 hooks · 1 plugin MCP server · 0 plugin LSP servers
+     1 error during load. Run /doctor for details.
+
+❯ /doctor 
+  ⎿  Claude Code diagnostics dismissed
+
+❯ ❯ /mcp                                                                                                                             
+    ⎿  MCP dialog dismissed                                                                                                          
+                                                                                                                                     
+  ❯ /reload-plugins                                                                                                                  
+                                                                                                                                     
+    ⎿  Reloaded: 3 plugins · 2 skills · 9 agents · 15 hooks · 1 plugin MCP server · 0 plugin LSP servers                             
+       1 error during load. Run /doctor for details.                                                                                 
+                                                                                                                                     
+  ❯ /doctor                                                                                                                          
+                                                                                                                                     
+                                                                                                                                     
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+  ───                                                                                                                                
+    Diagnostics                                                                                                                      
+    ├ Currently running: native (2.1.144)                                                                                            
+    ├ Commit: 32281b6b930f                                                                                                           
+    ├ Platform: linux-x64                                                                                                            
+    ├ Path: /home/creole/.local/share/claude/versions/2.1.144                                                                        
+    ├ Config install method: native                                                                                                  
+    └ Search: OK (bundled)                                                                                                           
+                                                                                                                                     
+    Updates                                                                                                                          
+    ├ Auto-updates: enabled                                                                                                          
+    ├ Auto-update channel: latest                                                                                                    
+    └ Checking for updates…                                                                                                          
+                                                                                                                                     
+    Background server                                                                                                                
+    └ Status: not running                                                                                                            
+    └ Mode: ephemeral                                                                                                                
+    └ Mode: ephemeral                                                                                                                
+    └ See claude daemon status for details                                                                                           
+                                                                                                                                     
+      Skill listing will be truncated                                                                                                
+        4 descriptions dropped (full descriptions kept for most-used skills) (1.2%/1% of context): caveman:cavecrew,                 
+      caveman:caveman-commit, caveman:caveman-compress, +1 more                                                                      
+          run /skills to disable some, or raise skillListingBudgetFraction (currently 1%) in settings.json                           
+        Opting in would cost ~2k tokens for skills every session and uses rate limits faster                                         
+                                                                                                                                     
+    Version locks                                                                                                                    
+    └ 2.1.144: PID 21038 (running)                                                                                                   
+                                                                                                                                     
+    ✘ Plugin errors                                                                                                                  
+    └ 1 plugin error(s) detected:                                                                                                    
+      └ context-mode@context-mode [context-mode]: Path not found:                                                                    
+        /home/creole/.claude/plugins/cache/context-mode/context-mode/1.0.75/.claude/skills (skills)                                  
+                                                                                                                                     
+    Still having issues? Run /feedback to report details.                                                                            
+                                                                                                                                     
+    Enter to continue · f to fix with Claude, what is this error in plugin will it affect the claude-code?                           
+
+● Plugin error = context-mode plugin cache missing skills dir:
+
+  /home/creole/.claude/plugins/cache/context-mode/context-mode/1.0.75/.claude/skills
+
+  Impact:
+  - Claude Code core works.
+  - context-mode plugin partly broken: its slash skills may not load.
+  - MCP server/tools may still work if registered, but plugin skill listing/hook behavior may be degraded.
+  - Your session shows context-mode MCP tools available, so not fatal.
+
+  Likely cause:
+  - bad/incomplete plugin install/cache
+  - plugin version packaging bug
+  - stale cache after upgrade/reload
+
+  Fix options:
+  1. Run /context-mode:ctx-doctor if available.
+  2. Run /context-mode:ctx-upgrade to reinstall/update context-mode.
+  3. If still broken, clear plugin cache/reinstall plugin.
+
+  Since diagnostic says Path not found ... skills, most likely reinstall/update fixes.
+
+✻ Sautéed for 7s
+
+❯ /context-mode:ctx-upgrade                                                                                                          
+
+● Upgrade tool → shell cmd → run.
+
+  Called plugin:context-mode:context-mode (ctrl+o to expand)
+
+● Bash("/home/creole/.nvm/versions/node/v24.12.0/bin/node"
+      "/home/creole/.claude/plugins/cache/context-mode/context-mode/1.0.75/cli.bundle.mjs" upgrade --platform clau…)
+● ⎿  Running…
+
+✶ Moo┌   context-mode upgrade
+  ⎿  │
+     ●  Platform: Claude Code (high confidence)
+     … +43 lines (ctrl+o to expand)
+  ⎿  (timeout 10m)
+     
+● context-mode upgrade
+
+  - Pulled latest from GitHub / marketplace synced
+  - Already on latest — v1.0.140
+  - Claude Code settings backed up → /home/creole/.claude/settings.json.bak
+  - Hooks configured
+  - Hook perms set — 7 scripts
+● context-mode upgrade
+
+  - Pulled latest from GitHub / marketplace synced
+  - Already on latest — v1.0.140
+  - Claude Code settings backed up → /home/creole/.claude/settings.json.bak
+  - Hooks configured
+  - Hook perms set — 7 scripts
+  - Doctor: all checks PASS
+
+  Restart session, or run /reload-plugins, to pick up new MCP/tools.
+
+✻ Churned for 28s
+
+❯ /reload-plugins                                                                                                                    
+  ⎿  Reloaded: 3 plugins · 2 skills · 9 agents · 15 hooks · 1 plugin MCP server · 0 plugin LSP servers
+     1 error during load. Run /doctor for details.
+
+
+❯ /mcp                                                                                                                               
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Manage MCP servers
+  1 server
+
+    Built-in MCPs (always available)
+  ❯ plugin:context-mode:context-mode · ✔ connected · 11 tools
+
+  https://code.claude.com/docs/en/mcp for help
+ ↑/↓ to navigate · Enter to confirm · Esc to cancel
+
+
+   ⎿  Reloaded: 3 plugins · 2 skills · 9 agents · 15 hooks · 1 plugin MCP server · 0 plugin LSP servers
+     1 error during load. Run /doctor for details.
+
+❯ /doctor                                                                                                                            
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Diagnostics
+  ├ Currently running: native (2.1.144)
+  ├ Commit: 32281b6b930f
+  ├ Platform: linux-x64
+  ├ Path: /home/creole/.local/share/claude/versions/2.1.144
+  ├ Config install method: native
+  └ Search: OK (bundled)
+
+  Updates
+  ├ Auto-updates: enabled
+  ├ Auto-update channel: latest
+  └ Checking for updates…
+
+  Background server
+  └ Status: not running
+  └ Mode: ephemeral
+  └ Mode: ephemeral
+  └ See claude daemon status for details
+
+    Skill listing will be truncated
+      4 descriptions dropped (full descriptions kept for most-used skills) (1.2%/1% of context): caveman:cavecrew, 
+    caveman:caveman-commit, caveman:caveman-compress, +1 more
+        run /skills to disable some, or raise skillListingBudgetFraction (currently 1%) in settings.json
+      Opting in would cost ~2k tokens for skills every session and uses rate limits faster
+
+  Version locks
+  └ 2.1.144: PID 22464 (running)
+
+  ✘ Plugin errors
+  └ 1 plugin error(s) detected:
+    └ context-mode@context-mode [context-mode]: Path not found: 
+      /home/creole/.claude/plugins/cache/context-mode/context-mode/1.0.140/.claude/skills (skills)
+
+  Still having issues? Run /feedback to report details.
+
+  Enter to continue · f to fix with Claude

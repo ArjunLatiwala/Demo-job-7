@@ -1,0 +1,95 @@
+name: healthcare-ai-governance-platform
+
+services:
+  agent-api:
+    container_name: healthcare-agent-api
+    build:
+      context: .
+      dockerfile: agent-api/Dockerfile
+    environment:
+      ENVIRONMENT: local-enterprise-demo
+      LLM_GATEWAY_URL: http://llm-gateway:8001
+      APPROVAL_QUEUE: /app/data/approvals.json
+    volumes:
+      - ./approval-service/data:/app/data
+    ports:
+      - "8010:8000"
+    depends_on:
+      llm-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai-platform
+
+  llm-gateway:
+    container_name: enterprise-llm-gateway
+    build:
+      context: .
+      dockerfile: llm-gateway/Dockerfile
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai-platform
+
+  nginx:
+    container_name: ai-platform-ingress
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      agent-api:
+        condition: service_healthy
+    networks:
+      - ai-platform
+
+  prometheus:
+    container_name: ai-platform-prometheus
+    image: prom/prometheus:v2.53.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=12h
+      - --web.enable-lifecycle
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      agent-api:
+        condition: service_healthy
+      llm-gateway:
+        condition: service_healthy
+    networks:
+      - ai-platform
+
+  grafana:
+    container_name: ai-platform-grafana
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_DEFAULT_THEME: dark
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/healthcare-ai-governance.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - ai-platform
+
+networks:
+  ai-platform:
+    name: healthcare-ai-platform-net
