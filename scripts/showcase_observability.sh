@@ -65,6 +65,8 @@ require_cmd curl
 require_cmd python3
 
 log "Building and starting Healthcare AI Governance platform"
+mkdir -p approval-service/data
+chmod 777 approval-service/data
 docker compose up -d --build
 
 log "Waiting for services"
